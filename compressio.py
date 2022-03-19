@@ -1,52 +1,28 @@
-from PyQt5 import QtWidgets as qtw
-from PyQt5.QtWidgets import QApplication, QMainWindow
-
 import sys
 
+from PyQt5 import QtWidgets as qtw
 
-class MainWindow(qtw.QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle('Compress.io')
+from compressio_prototype import Ui_Form
 
-        self.outerLayout = qtw.QVBoxLayout()
 
-        self.setLayout(self.outerLayout)
-        self.initUI()
-        self.show()
+class Main(qtw.QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    def initUI(self):
-        fileLayout = qtw.QHBoxLayout()
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
-        controlsLayout = qtw.QGridLayout()
-
-        self.outerLayout.addLayout(fileLayout)
-        self.outerLayout.addLayout(controlsLayout)
-
-        self.fileField = qtw.QLineEdit()
-
-        browseBtn = qtw.QPushButton("Browse")
-        browseBtn.clicked.connect(self.openFileDialog)
-
-        fileLayout.addWidget(self.fileField)
-        fileLayout.addWidget(browseBtn)
-
-        compressBtn = qtw.QRadioButton("Compress")
-        resizeBtn = qtw.QRadioButton("Resize")
-
-        controlsLayout.addWidget(compressBtn, 0, 2, 1, 1)
-        controlsLayout.addWidget(resizeBtn, 0, 3, 1, 1)
-
-        # width = qtw.QInputDialog()
-        # container.layout().addWidget(width, 1, 0, 1, 2)
+        self.ui.sourceBrowse.clicked.connect(self.openFileDialog)
 
     def openFileDialog(self):
-        fileName = qtw.QFileDialog.getOpenFileName(self, "Choose a file", "", "All files (*)")
-        if fileName:
-            self.fileField.setText(fileName[0])
+        filename = qtw.QFileDialog.getExistingDirectory(self, "Choose a file", "")
+        if filename:
+            self.ui.sourcefield.setText(filename[0])
 
 
-app = qtw.QApplication([])
-app.setStyle("Breeze")
-win = MainWindow()
-app.exec()
+if __name__ == '__main__':
+    app = qtw.QApplication(sys.argv)
+    app.setStyle("Breeze")
+    win = Main()
+    win.show()
+    app.exec()
