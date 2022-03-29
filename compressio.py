@@ -1,7 +1,7 @@
 import sys
-
+import os
+import PIL
 from PyQt5 import QtWidgets as qtw
-
 from compressio_prototype import Ui_Form
 
 
@@ -12,12 +12,16 @@ class Main(qtw.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
-        self.ui.sourceBrowse.clicked.connect(self.openFileDialog)
+        self.ui.sourceBrowse.clicked.connect(self.openDirectory)
 
-    def openFileDialog(self):
-        filename = qtw.QFileDialog.getExistingDirectory(self, "Choose a file", "")
-        if filename:
-            self.ui.sourcefield.setText(filename[0])
+        # self.ui.magicButton.clicked.connect(self)
+
+    def openDirectory(self):
+        directory = qtw.QFileDialog.getExistingDirectory(self, "Choose a file", "")
+        if directory:
+            self.ui.sourcefield.setText(directory[0])
+
+    # def compressAll(self):
 
 
 if __name__ == '__main__':
