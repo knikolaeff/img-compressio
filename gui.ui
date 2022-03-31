@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>Form</class>
  <widget class="QWidget" name="Form">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="enabled">
    <bool>true</bool>
   </property>
@@ -14,7 +17,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Compressio</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -23,10 +26,10 @@
       <enum>QLayout::SetDefaultConstraint</enum>
      </property>
      <item row="2" column="1">
-      <widget class="QLineEdit" name="lineEdit_2"/>
+      <widget class="QLineEdit" name="destinationEntry"/>
      </item>
      <item row="2" column="2">
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="destinationBtn">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -45,14 +48,14 @@
       </widget>
      </item>
      <item row="0" column="0">
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="sourceLabel">
        <property name="text">
         <string>Source</string>
        </property>
       </widget>
      </item>
      <item row="0" column="2">
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="sourceBtn">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -68,24 +71,24 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="sourceEntry"/>
      </item>
      <item row="1" column="0" colspan="3">
-      <widget class="QCheckBox" name="checkBox">
+      <widget class="QCheckBox" name="overwriteCheck">
        <property name="text">
         <string>Use source folder as a destination folder (overwrites existing images)</string>
        </property>
       </widget>
      </item>
      <item row="3" column="0">
-      <widget class="QCheckBox" name="compressBtn">
+      <widget class="QCheckBox" name="compressCheck">
        <property name="text">
         <string>Compress</string>
        </property>
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="destinationLbl">
        <property name="text">
         <string>Destination</string>
        </property>
@@ -103,14 +106,14 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <widget class="QLabel" name="label_3">
+       <widget class="QLabel" name="qualityLbl">
         <property name="text">
          <string>Quality</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QSlider" name="horizontalSlider">
+       <widget class="QSlider" name="qualitySlider">
         <property name="maximum">
          <number>100</number>
         </property>
@@ -120,7 +123,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="spinBox">
+       <widget class="QSpinBox" name="qualitySpinbox">
         <property name="maximum">
          <number>100</number>
         </property>
@@ -130,7 +133,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="resizeBtn">
+    <widget class="QCheckBox" name="resizeCheck">
      <property name="text">
       <string>Resize</string>
      </property>
@@ -146,21 +149,21 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,2,2,3">
       <item>
-       <widget class="QLabel" name="label_4">
+       <widget class="QLabel" name="resolutionLbl">
         <property name="text">
          <string>Resolution</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="spinBox_2">
+       <widget class="QSpinBox" name="widthSpinbox">
         <property name="maximum">
          <number>10000</number>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="spinBox_3">
+       <widget class="QSpinBox" name="heightSpinbox">
         <property name="maximum">
          <number>10000</number>
         </property>
@@ -198,14 +201,14 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLabel" name="label_5">
+      <widget class="QLabel" name="saveasLbl">
        <property name="text">
         <string>Save as</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="comboBox">
+      <widget class="QComboBox" name="formatBox">
        <item>
         <property name="text">
          <string>Original</string>
@@ -254,7 +257,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3">
+      <widget class="QPushButton" name="compressAllBtn">
        <property name="minimumSize">
         <size>
          <width>100</width>
@@ -289,9 +292,9 @@
  <resources/>
  <connections>
   <connection>
-   <sender>horizontalSlider</sender>
+   <sender>qualitySlider</sender>
    <signal>sliderMoved(int)</signal>
-   <receiver>spinBox</receiver>
+   <receiver>qualitySpinbox</receiver>
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -305,9 +308,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>spinBox</sender>
+   <sender>qualitySpinbox</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>horizontalSlider</receiver>
+   <receiver>qualitySlider</receiver>
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -321,7 +324,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>compressBtn</sender>
+   <sender>compressCheck</sender>
    <signal>toggled(bool)</signal>
    <receiver>compressGB</receiver>
    <slot>setEnabled(bool)</slot>
@@ -337,7 +340,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>resizeBtn</sender>
+   <sender>resizeCheck</sender>
    <signal>toggled(bool)</signal>
    <receiver>resizeGB</receiver>
    <slot>setEnabled(bool)</slot>
@@ -349,6 +352,54 @@
     <hint type="destinationlabel">
      <x>242</x>
      <y>225</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>overwriteCheck</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>destinationLbl</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>256</x>
+     <y>47</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>44</x>
+     <y>73</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>overwriteCheck</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>destinationEntry</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>256</x>
+     <y>47</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>253</x>
+     <y>72</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>overwriteCheck</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>destinationBtn</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>256</x>
+     <y>47</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>465</x>
+     <y>73</y>
     </hint>
    </hints>
   </connection>

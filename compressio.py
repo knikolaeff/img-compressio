@@ -1,8 +1,7 @@
 import sys
 import os
-import PIL
 from PyQt5 import QtWidgets as qtw
-from compressio_prototype import Ui_Form
+from compressio_gui import Ui_Form
 
 
 class Main(qtw.QWidget):
@@ -12,14 +11,16 @@ class Main(qtw.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
-        self.ui.sourceBrowse.clicked.connect(self.openDirectory)
+        self.ui.sourceBtn.clicked.connect(self.openDirectory)
+
+        self.setWindowTitle("Compressio")
 
         # self.ui.magicButton.clicked.connect(self)
 
     def openDirectory(self):
         directory = qtw.QFileDialog.getExistingDirectory(self, "Choose a file", "")
         if directory:
-            self.ui.sourcefield.setText(directory[0])
+            self.ui.sourceEntry.setText("{}".format(directory))
 
     # def compressAll(self):
 
