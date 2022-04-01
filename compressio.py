@@ -1,6 +1,6 @@
 import sys
 import os
-import PIL
+from PIL import Image
 from PyQt5 import QtWidgets as qtw
 from compressio_gui import Ui_Form
 
@@ -12,6 +12,8 @@ class Main(qtw.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
+        self.setWindowTitle("Compressio")
+
         self.okMsg = qtw.QMessageBox()
         self.okMsg.setText("Done!")
 
@@ -20,9 +22,8 @@ class Main(qtw.QWidget):
 
         self.ui.sourceBtn.clicked.connect(self.openSourceDirectory)
         self.ui.destinationBtn.clicked.connect(self.openDestDirectory)
-        self.ui.compressAllBtn.clicked.connect(self.compressAll)
 
-        self.setWindowTitle("Compressio")
+        self.ui.compressAllBtn.clicked.connect(self.proceedAll)
 
     def openSourceDirectory(self):
         sourceDirectory = qtw.QFileDialog.getExistingDirectory(
@@ -38,27 +39,54 @@ class Main(qtw.QWidget):
         if destDirectory:
             self.ui.destinationEntry.setText("{}".format(destDirectory))
 
-    def compressAll(self, path):
-
-        sourceDir = self.ui.sourceEntry.text()
-        destDir = self.ui.destinationEntry.text()
+    def compress(self):
+        # try:
+        sourceDir, destDir = self.getSources()
+        imgFormat = self.saveAs()
         quality = self.ui.qualitySpinbox.value()
+        for file in os.listdir(sourceDir):
+            fname, fext = os.path.splitext(file)
+            if imgFormat is not None:
+                fext = imgFormat.lower()
+            newFilePath = destDir + fname + "_resized" + fext
+            image = Image.open(sourceDir + file)
+            if fext == ".png":
+                image = image.convert(
+                    'P',
+                    palette=Image.ADAPTIVE,
+                    colors=256
+                )
+            image.save(newFilePath, imgFormat, optimize=True)
+        self.okMsg.exec()
+
+        # except:
+        #     self.notOkMsg.exec()
+
+    def saveAs(self):
         imgFormat = self.ui.formatBox.currentText()
         if imgFormat == "Original":
             imgFormat = None
+        return imgFormat
 
-        try:
-            for file in os.listdir(sourceDir):
-                image = PIL.Image.open(path + file)
-                image.save(destDir, imgFormat, optimize=True, quality=quality)
-                okMsg.exec()
+    def getSources(self):
+        sourceDir = r"" + self.ui.sourceEntry.text() + "/"
+        if self.ui.overwriteCheck.isChecked() is not True:
+            destDir = r"" + self.ui.destinationEntry.text() + "/"
+        else:
+            destDir = sourceDir
+        return sourceDir, destDir
 
-        except:
-            self.notOkMsg.exec()
+    def proceedAll(self):
+        imgFormat = self.saveAs()
+
+        if self.ui.compressCheck.isChecked():
+            self.compress()
+        elif self.ui.resizeCheck.isChecked():
+            pass
 
 
 if __name__ == '__main__':
-    app = qtw.QApplication(sys.argv)
+    app = qtw.QApplication([])
     app.setStyle("Breeze")
     win = Main()
     win.show()
