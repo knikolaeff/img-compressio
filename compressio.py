@@ -1,4 +1,3 @@
-import sys
 import os
 from PIL import Image
 from PyQt5 import QtWidgets as qtw
@@ -27,8 +26,8 @@ class Main(qtw.QWidget):
 
         self.ui.proceedAllBtn.clicked.connect(self.proceedAll)
 
-    def showDoneMessage(self):
-        qtw.QMessageBox.information(self, "Success", "Done! Successfully edited images: %d")
+    def showDoneMessage(self, counter):
+        qtw.QMessageBox.information(self, "Success", "Done! Successfully edited images: {:d}".format(counter))
 
     def openSourceDirectory(self):
         source_directory = qtw.QFileDialog.getExistingDirectory(
@@ -54,40 +53,55 @@ class Main(qtw.QWidget):
     def getSources(self):
         self.sourceDir = r"" + self.ui.sourceEntry.text() + "/"
 
-        if self.ui.overwriteCheck.isChecked() is not True:
-            self.destDir = r"" + self.ui.destinationEntry.text() + "/"
-        else:
+        if self.ui.overwriteCheck.isChecked():
             self.destDir = self.sourceDir
+        else:
+            self.destDir = r"" + self.ui.destinationEntry.text() + "/"
 
     def compressAndSave(self, image, fext, new_file_path):
         quality = self.ui.qualitySpinbox.value()
+
         # PNG is a lossless format, hence requires separate algorithm
+
         if fext == ".png":
             image = image.convert(
                 'P',
                 palette=Image.ADAPTIVE,
                 colors=256
             )
+
         image.save(new_file_path, self.newImgFormat, optimize=True, quality=quality)
 
     def proceedAll(self):
+        counter = 0
+
         self.getSources()
         self.getImgFormat()
+
         for file in os.listdir(self.sourceDir):
             fname, fext = os.path.splitext(file)
             # Saves image in a format, chosen in a spinbox, if the value in the spinbox != "Original"
+
             if self.newImgFormat is not None:
                 fext = '.' + self.newImgFormat.lower()
+
             new_file_path = self.destDir + fname + "_compressio" + fext
+
             image = Image.open(self.sourceDir + file)
+
             if self.ui.resizeCheck.isChecked():
                 pass
+
             if self.ui.compressCheck.isChecked():
                 self.compressAndSave(image, fext, new_file_path)
+                counter += 1
+
             else:
                 # If no checkboxes ticked, saves images in a chosen format
                 image.save(new_file_path, self.newImgFormat)
-        self.showDoneMessage()
+                counter += 1
+
+        self.showDoneMessage(counter)
 
 
 if __name__ == '__main__':
