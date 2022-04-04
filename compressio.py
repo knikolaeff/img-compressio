@@ -14,6 +14,10 @@ class Main(qtw.QWidget):
 
         self.setWindowTitle("Compressio")
 
+        self.newImgFormat = None
+        self.sourceDir = None
+        self.destDir = None
+
         self.okMsg = qtw.QMessageBox()
         self.okMsg.setText("Done!")
 
@@ -23,7 +27,7 @@ class Main(qtw.QWidget):
         self.ui.sourceBtn.clicked.connect(self.openSourceDirectory)
         self.ui.destinationBtn.clicked.connect(self.openDestDirectory)
 
-        self.ui.compressAllBtn.clicked.connect(self.proceedAll)
+        self.ui.proceedAllBtn.clicked.connect(self.proceedAll)
 
     def openSourceDirectory(self):
         sourceDirectory = qtw.QFileDialog.getExistingDirectory(
@@ -40,33 +44,29 @@ class Main(qtw.QWidget):
             self.ui.destinationEntry.setText("{}".format(destDirectory))
 
     def compress(self):
-        # try:
-        sourceDir, destDir = self.getSources()
-        imgFormat = self.saveAs()
-        quality = self.ui.qualitySpinbox.value()
-        for file in os.listdir(sourceDir):
+        self.getSources()
+        self.saveAs()
+        for file in os.listdir(self.sourceDir):
             fname, fext = os.path.splitext(file)
-            if imgFormat is not None:
-                fext = imgFormat.lower()
-            newFilePath = destDir + fname + "_resized" + fext
-            image = Image.open(sourceDir + file)
+            # Saves image in a format, chosen in a spinbox, if the value in the spinbox != "Original"
+            if self.newImgFormat is not None:
+                fext = self.newImgFormat.lower()
+            newFilePath = self.destDir + fname + "_compressio" + fext
+            image = Image.open(self.sourceDir + file)
+            quality = self.ui.qualitySpinbox.value()
             if fext == ".png":
                 image = image.convert(
                     'P',
                     palette=Image.ADAPTIVE,
                     colors=256
                 )
-            image.save(newFilePath, imgFormat, optimize=True)
+            image.save(newFilePath, self.newImgFormat, optimize=True, quality=quality)
         self.okMsg.exec()
 
-        # except:
-        #     self.notOkMsg.exec()
-
     def saveAs(self):
-        imgFormat = self.ui.formatBox.currentText()
-        if imgFormat == "Original":
-            imgFormat = None
-        return imgFormat
+        self.newImgFormat = self.ui.formatBox.currentText()
+        if self.newImgFormat == "Original":
+            self.newImgFormat = None
 
     def getSources(self):
         sourceDir = r"" + self.ui.sourceEntry.text() + "/"
@@ -77,7 +77,6 @@ class Main(qtw.QWidget):
         return sourceDir, destDir
 
     def proceedAll(self):
-        imgFormat = self.saveAs()
 
         if self.ui.compressCheck.isChecked():
             self.compress()
