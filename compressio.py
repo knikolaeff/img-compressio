@@ -1,6 +1,7 @@
 import os
 from PIL import Image
 from PyQt5 import QtWidgets as qtw
+from PyQt5.QtGui import QIcon
 from compressio_gui import Ui_Form
 
 
@@ -12,14 +13,12 @@ class Main(qtw.QWidget):
         self.ui.setupUi(self)
 
         self.setWindowTitle("Compressio")
+        self.setWindowIcon(QIcon('icon.ico'))
 
         # These attributes are made to avoid passing directories from method to method
         self.newImgFormat = None
         self.sourceDir = None
         self.destDir = None
-
-        self.notOkMsg = qtw.QMessageBox()
-        self.notOkMsg.setText("Something went wrong")
 
         self.ui.sourceBtn.clicked.connect(self.openSourceDirectory)
         self.ui.destinationBtn.clicked.connect(self.openDestDirectory)
@@ -28,6 +27,9 @@ class Main(qtw.QWidget):
 
     def showDoneMessage(self, counter):
         qtw.QMessageBox.information(self, "Success", "Done! Successfully edited images: {:d}".format(counter))
+
+    def showFailMessage(self):
+        qtw.QMessageBox.information(self, "Fail", "Something went wrong")
 
     def openSourceDirectory(self):
         source_directory = qtw.QFileDialog.getExistingDirectory(
@@ -49,7 +51,7 @@ class Main(qtw.QWidget):
         if self.newImgFormat == "Original":
             self.newImgFormat = None
 
-    # Overwrites sourceDir and destDir attributes with the ones in input fields
+    # Overwrites empty sourceDir and destDir attributes with directories from the input fields
     def getSources(self):
         self.sourceDir = r"" + self.ui.sourceEntry.text() + "/"
 
@@ -58,11 +60,16 @@ class Main(qtw.QWidget):
         else:
             self.destDir = r"" + self.ui.destinationEntry.text() + "/"
 
-    def compressAndSave(self, image, fext, new_file_path):
+    def resizeImage(self, image):
+        width = self.ui.widthSpinbox.value()
+        height = self.ui.heightSpinbox.value()
+        image = image.resize((width, height))
+        return image
+
+    def compressImage(self, image, fext):
         quality = self.ui.qualitySpinbox.value()
 
         # PNG is a lossless format, hence requires separate algorithm
-
         if fext == ".png":
             image = image.convert(
                 'P',
@@ -70,18 +77,23 @@ class Main(qtw.QWidget):
                 colors=256
             )
 
-        image.save(new_file_path, self.newImgFormat, optimize=True, quality=quality)
+        return image, quality
 
     def proceedAll(self):
+        # Default quality value in PIL is 75
+        quality = 75
         counter = 0
 
         self.getSources()
         self.getImgFormat()
+        self.ui.progressBar.setMaximum(len(os.listdir(self.sourceDir)))
+
+        progress = 0
 
         for file in os.listdir(self.sourceDir):
             fname, fext = os.path.splitext(file)
-            # Saves image in a format, chosen in a spinbox, if the value in the spinbox != "Original"
 
+            # Saves image in a format, chosen in a spinbox, if the value in the spinbox != "Original"
             if self.newImgFormat is not None:
                 fext = '.' + self.newImgFormat.lower()
 
@@ -90,16 +102,15 @@ class Main(qtw.QWidget):
             image = Image.open(self.sourceDir + file)
 
             if self.ui.resizeCheck.isChecked():
-                pass
+                image = self.resizeImage(image)
 
             if self.ui.compressCheck.isChecked():
-                self.compressAndSave(image, fext, new_file_path)
-                counter += 1
-
-            else:
-                # If no checkboxes ticked, saves images in a chosen format
-                image.save(new_file_path, self.newImgFormat)
-                counter += 1
+                image, quality = self.compressImage(image, fext)
+            progress += 1
+            self.ui.progressBar.setValue(progress)
+            # If no checkboxes ticked, saves images in a chosen format
+            image.save(new_file_path, self.newImgFormat, optimize=True, quality=quality)
+            counter += 1
 
         self.showDoneMessage(counter)
 
