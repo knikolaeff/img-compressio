@@ -26,7 +26,8 @@ class Main(qtw.QWidget):
         self.ui.proceedAllBtn.clicked.connect(self.proceedAll)
 
     def showDoneMessage(self, counter):
-        qtw.QMessageBox.information(self, "Success", "Done! Successfully edited images: {:d}".format(counter))
+        qtw.QMessageBox.information(
+            self, "Success", "Done! Successfully edited images: {:d}".format(counter))
 
     def showFailMessage(self):
         qtw.QMessageBox.information(self, "Fail", "Something went wrong")
@@ -80,39 +81,46 @@ class Main(qtw.QWidget):
         return image, quality
 
     def proceedAll(self):
-        # Default quality value in PIL is 75
-        quality = 75
         counter = 0
+        progress = 0
 
         self.getSources()
         self.getImgFormat()
         self.ui.progressBar.setMaximum(len(os.listdir(self.sourceDir)))
 
-        progress = 0
+        extensions = (".png", ".jpg", ".jpeg", ".bmp", ".jfif")
+        files = [file for file in os.listdir(
+            self.sourceDir) if file.endswith(extensions)]
 
-        for file in os.listdir(self.sourceDir):
-            fname, fext = os.path.splitext(file)
+        for file in files:
+            self.processFile(file)
 
-            # Saves image in a format, chosen in a spinbox, if the value in the spinbox != "Original"
-            if self.newImgFormat is not None:
-                fext = '.' + self.newImgFormat.lower()
-
-            new_file_path = self.destDir + fname + "_compressio" + fext
-
-            image = Image.open(self.sourceDir + file)
-
-            if self.ui.resizeCheck.isChecked():
-                image = self.resizeImage(image)
-
-            if self.ui.compressCheck.isChecked():
-                image, quality = self.compressImage(image, fext)
+            counter += 1
             progress += 1
             self.ui.progressBar.setValue(progress)
-            # If no checkboxes ticked, saves images in a chosen format
-            image.save(new_file_path, self.newImgFormat, optimize=True, quality=quality)
-            counter += 1
 
         self.showDoneMessage(counter)
+
+    def processFile(self, file):
+        fname, fext = os.path.splitext(file)
+
+        # Saves image in a format, chosen in a spinbox, if the value in the spinbox != "Original"
+        if self.newImgFormat is not None:
+            fext = '.' + self.newImgFormat.lower()
+
+        new_file_path = self.destDir + fname + "_compressio" + fext
+
+        image = Image.open(self.sourceDir + file)
+
+        if self.ui.resizeCheck.isChecked():
+            image = self.resizeImage(image)
+
+        if self.ui.compressCheck.isChecked():
+            image, quality = self.compressImage(image, fext)
+
+        # If no checkboxes ticked, saves images in a chosen format
+        image.save(new_file_path, self.newImgFormat,
+                   optimize=True, quality=quality)
 
 
 if __name__ == '__main__':
