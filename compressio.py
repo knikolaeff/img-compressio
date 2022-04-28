@@ -13,12 +13,13 @@ class Main(qtw.QWidget):
         self.ui.setupUi(self)
 
         self.setWindowTitle("Compressio")
-        self.setWindowIcon(QIcon('icon.ico'))
+        self.setWindowIcon(QIcon('src/icon.ico'))
 
         # These attributes are made to avoid passing directories from method to method
         self.newImgFormat = None
         self.sourceDir = None
         self.destDir = None
+        self.quality = 75
 
         self.ui.sourceBtn.clicked.connect(self.openSourceDirectory)
         self.ui.destinationBtn.clicked.connect(self.openDestDirectory)
@@ -68,7 +69,7 @@ class Main(qtw.QWidget):
         return image
 
     def compressImage(self, image, fext):
-        quality = self.ui.qualitySpinbox.value()
+        self.quality = self.ui.qualitySpinbox.value()
 
         # PNG is a lossless format, hence requires separate algorithm
         if fext == ".png":
@@ -78,7 +79,7 @@ class Main(qtw.QWidget):
                 colors=256
             )
 
-        return image, quality
+        return image
 
     def proceedAll(self):
         counter = 0
@@ -116,11 +117,11 @@ class Main(qtw.QWidget):
             image = self.resizeImage(image)
 
         if self.ui.compressCheck.isChecked():
-            image, quality = self.compressImage(image, fext)
+            image = self.compressImage(image, fext)
 
         # If no checkboxes ticked, saves images in a chosen format
         image.save(new_file_path, self.newImgFormat,
-                   optimize=True, quality=quality)
+                   optimize=True, quality=self.quality)
 
 
 if __name__ == '__main__':
