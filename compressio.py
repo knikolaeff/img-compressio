@@ -88,7 +88,7 @@ class Main(qtw.QWidget):
         self.getSources()
         self.getImgFormat()
 
-        extensions = {".png", ".jpg", ".jpeg", ".bmp", ".jfif"}
+        extensions = (".png", ".jpg", ".jpeg", ".bmp", ".jfif")
         files = [file for file in os.listdir(
             self.sourceDir) if file.endswith(extensions)]
 
