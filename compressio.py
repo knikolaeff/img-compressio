@@ -87,11 +87,12 @@ class Main(qtw.QWidget):
 
         self.getSources()
         self.getImgFormat()
-        self.ui.progressBar.setMaximum(len(os.listdir(self.sourceDir)))
 
-        extensions = (".png", ".jpg", ".jpeg", ".bmp", ".jfif")
+        extensions = {".png", ".jpg", ".jpeg", ".bmp", ".jfif"}
         files = [file for file in os.listdir(
             self.sourceDir) if file.endswith(extensions)]
+
+        self.ui.progressBar.setMaximum(len(files))
 
         for file in files:
             self.processFile(file)
