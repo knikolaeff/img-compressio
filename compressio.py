@@ -1,4 +1,5 @@
 import os
+import asyncio
 from PIL import Image
 from PyQt5 import QtWidgets as qtw
 from PyQt5.QtGui import QIcon
@@ -107,15 +108,15 @@ class Main(qtw.QWidget):
         self.ui.progressBar.setMaximum(len(files))
 
         for file in files:
-            self.processFile(file)
+            asyncio.run(self.processFile(file))
 
             counter += 1
             progress += 1
-            self.ui.progressBar.setValue(progress)
+            self.ui.progressBar.setValue(progress) 
 
         self.showDoneMessage(counter)
 
-    def processFile(self, file):
+    async def processFile(self, file):
         fname, fext = os.path.splitext(file)
 
         # Saves image in a format, chosen in a spinbox, if the value in the spinbox != "Original"
