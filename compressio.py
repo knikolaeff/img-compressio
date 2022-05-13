@@ -31,7 +31,9 @@ class Main(qtw.QWidget):
             self, "Success", "Done! Successfully edited images: {:d}".format(counter))
 
     def showFailMessage(self):
-        qtw.QMessageBox.information(self, "Fail", "Something went wrong")
+        qtw.QMessageBox.information(self, "Fail", "Fields cannot be empty!")
+
+    
 
     def openSourceDirectory(self):
         source_directory = qtw.QFileDialog.getExistingDirectory(
@@ -54,7 +56,12 @@ class Main(qtw.QWidget):
             self.newImgFormat = None
 
     # Overwrites empty sourceDir and destDir attributes with directories from the input fields
+    # If any of the fields is empty - raise an exception that will be caught
     def getSources(self):
+
+        if self.ui.sourceEntry.text() == "" or self.ui.destinationEntry.text() == "":
+            raise ValueError("Fields cannot be empty")
+
         self.sourceDir = r"" + self.ui.sourceEntry.text() + "/"
 
         if self.ui.overwriteCheck.isChecked():
@@ -81,11 +88,16 @@ class Main(qtw.QWidget):
 
         return image
 
+        # return keyword in the except body stops the function
     def proceedAll(self):
         counter = 0
         progress = 0
+        try:
+            self.getSources()
+        except ValueError:
+            self.showFailMessage()
+            return
 
-        self.getSources()
         self.getImgFormat()
 
         extensions = (".png", ".jpg", ".jpeg", ".bmp", ".jfif")
