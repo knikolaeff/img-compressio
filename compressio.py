@@ -1,5 +1,5 @@
 import os
-import asyncio
+import threading
 from PIL import Image
 from PyQt5 import QtWidgets as qtw
 from PyQt5.QtGui import QIcon
@@ -14,70 +14,61 @@ class Main(qtw.QWidget):
         self.ui.setupUi(self)
 
         self.setWindowTitle("Compressio")
-        self.setWindowIcon(QIcon('src/icon.ico'))
+        self.setWindowIcon(QIcon(r"src/icon.ico"))
 
         # These attributes are made to avoid passing directories from method to method
-        self.newImgFormat = None
-        self.sourceDir = None
-        self.destDir = None
+        self.source_dir = None
+        self.dest_dir = None
         self.quality = 75
 
-        self.ui.sourceBtn.clicked.connect(self.openSourceDirectory)
-        self.ui.destinationBtn.clicked.connect(self.openDestDirectory)
+        self.ui.sourceBtn.clicked.connect(self.open_source_directory)
+        self.ui.destinationBtn.clicked.connect(self.open_dest_directory)
 
-        self.ui.proceedAllBtn.clicked.connect(self.proceedAll)
+        self.ui.proceedAllBtn.clicked.connect(self.proceed_all)
 
-    def showDoneMessage(self, counter):
+    def show_done_message(self, counter):
         qtw.QMessageBox.information(
-            self, "Success", "Done! Successfully edited images: {:d}".format(counter))
+            self, "Success", f"Done! Successfully edited images: {counter}")
 
-    def showFailMessage(self):
+    def show_fail_message(self):
         qtw.QMessageBox.information(self, "Fail", "Fields cannot be empty!")
 
-    
+    def open_source_directory(self):
+        directory = qtw.QFileDialog.getExistingDirectory(
+            self, "Choose Directory", "", qtw.QFileDialog.DontUseNativeDialog)
 
-    def openSourceDirectory(self):
-        source_directory = qtw.QFileDialog.getExistingDirectory(
-            self, "Choose a file", "")
+        if directory:
+            self.ui.sourceEntry.setText(directory)
 
-        if source_directory:
-            self.ui.sourceEntry.setText("{}".format(source_directory))
+    def open_dest_directory(self):
+        directory = qtw.QFileDialog.getExistingDirectory(
+            self, "Choose Directory", "", qtw.QFileDialog.DontUseNativeDialog)
 
-    def openDestDirectory(self):
-        dest_directory = qtw.QFileDialog.getExistingDirectory(
-            self, "Choose a file", "")
-
-        if dest_directory:
-            self.ui.destinationEntry.setText("{}".format(dest_directory))
-
-    def getImgFormat(self):
-        self.newImgFormat = self.ui.formatBox.currentText()
-
-        if self.newImgFormat == "Original":
-            self.newImgFormat = None
+        if directory:
+            self.ui.destinationEntry.setText(directory)
 
     # Overwrites empty sourceDir and destDir attributes with directories from the input fields
     # If any of the fields is empty - raise an exception that will be caught
-    def getSources(self):
+    def get_sources(self):
 
         if self.ui.sourceEntry.text() == "" or self.ui.destinationEntry.text() == "":
             raise ValueError("Fields cannot be empty")
 
-        self.sourceDir = r"" + self.ui.sourceEntry.text() + "/"
+    # 'r' in front of string means raw string. It will ignore escape sequences
+        self.source_dir = r"" + self.ui.sourceEntry.text() + "/"
 
         if self.ui.overwriteCheck.isChecked():
-            self.destDir = self.sourceDir
+            self.dest_dir = self.source_dir
         else:
-            self.destDir = r"" + self.ui.destinationEntry.text() + "/"
+            self.dest_dir = r"" + self.ui.destinationEntry.text() + "/"
 
-    def resizeImage(self, image):
+    def resize_image(self, image):
         width = self.ui.widthSpinbox.value()
         height = self.ui.heightSpinbox.value()
         image = image.resize((width, height))
         return image
 
-    def compressImage(self, image, fext):
-        self.quality = self.ui.qualitySpinbox.value()
+    def compress_image(self, image, fext):
 
         # PNG is a lossless format, hence requires separate algorithm
         if fext == ".png":
@@ -89,53 +80,53 @@ class Main(qtw.QWidget):
 
         return image
 
-        # return keyword in the except body stops the function
-    def proceedAll(self):
+    def proceed_all(self):
         counter = 0
         progress = 0
-        try:
-            self.getSources()
-        except ValueError:
-            self.showFailMessage()
-            return
+        self.quality = self.ui.qualitySpinbox.value()
 
-        self.getImgFormat()
+        # return keyword in the except body stops the function
+        try:
+            self.get_sources()
+        except ValueError:
+            self.show_fail_message()
+            return
+        # Saves image in a format, chosen in a spinbox, if the value in the spinbox != "Original"
+        # if it is, format remains the same
+        img_format = self.ui.formatBox.currentText().lower(
+        ) if self.ui.formatBox.currentText() != "Original" else None
 
         extensions = (".png", ".jpg", ".jpeg", ".bmp", ".jfif")
         files = [file for file in os.listdir(
-            self.sourceDir) if file.endswith(extensions)]
+            self.source_dir) if file.endswith(extensions)]
 
         self.ui.progressBar.setMaximum(len(files))
 
         for file in files:
-            asyncio.run(self.processFile(file))
+            self.process_file(file, img_format)
 
             counter += 1
             progress += 1
-            self.ui.progressBar.setValue(progress) 
+            self.ui.progressBar.setValue(progress)
 
-        self.showDoneMessage(counter)
+        self.show_done_message(counter)
+        self.ui.progressBar.setValue(0)
 
-    async def processFile(self, file):
+    def process_file(self, file, img_format):
         fname, fext = os.path.splitext(file)
 
-        # Saves image in a format, chosen in a spinbox, if the value in the spinbox != "Original"
-        if self.newImgFormat is not None:
-            fext = '.' + self.newImgFormat.lower()
+        fext = '.' + img_format if img_format is not None else '.' + fext
 
-        new_file_path = self.destDir + fname + "_compressio" + fext
+        new_file_path = self.dest_dir + fname + "_compressio" + fext
 
-        image = Image.open(self.sourceDir + file)
+        image = Image.open(self.source_dir + file)
 
         if self.ui.resizeCheck.isChecked():
-            image = self.resizeImage(image)
-
+            image = self.resize_image(image)
         if self.ui.compressCheck.isChecked():
-            image = self.compressImage(image, fext)
+            image = self.compress_image(image, fext)
 
-        # If no checkboxes ticked, saves images in a chosen format
-        image.save(new_file_path, self.newImgFormat,
-                   optimize=True, quality=self.quality)
+        image.save(new_file_path, optimize=True, quality=self.quality)
 
 
 if __name__ == '__main__':
