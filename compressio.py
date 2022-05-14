@@ -1,9 +1,69 @@
 import os
-import threading
 from PIL import Image
 from PyQt5 import QtWidgets as qtw
 from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSignal, QThread, QObject
 from compressio_gui import Ui_Form
+
+
+class Worker(QObject):
+    finished = pyqtSignal()
+    success = pyqtSignal(int)
+    error = pyqtSignal()
+
+    def run(self):
+        print("here2")
+        counter = 0
+        progress = 0
+
+        # return keyword in the except body stops the function
+        try:
+            win.get_sources()
+        except ValueError:
+            self.error.emit()
+            return
+
+        win.quality = win.ui.qualitySpinbox.value()
+
+        # Saves image in a format, chosen in a spinbox, if the value in the spinbox != "Original"
+        # if it is, format remains the same
+        img_format = win.ui.formatBox.currentText().lower(
+        ) if win.ui.formatBox.currentText() != "Original" else None
+
+        extensions = (".png", ".jpg", ".jpeg", ".bmp", ".jfif")
+        files = [file for file in os.listdir(
+            win.source_dir) if file.endswith(extensions)]
+
+        win.ui.progressBar.setMaximum(len(files))
+
+        for file in files:
+            self.process_file(file, img_format)
+            progress += 1
+            counter += 1
+            self.record_progress(progress)
+
+        self.success.emit(counter)
+        self.finished.emit()
+        win.ui.progressBar.setValue(0)
+
+    def process_file(self, file, img_format):
+        fname, fext = os.path.splitext(file)
+
+        fext = '.' + img_format if img_format is not None else fext
+
+        new_file_path = win.dest_dir + fname + "_compressio" + fext
+
+        image = Image.open(win.source_dir + file)
+
+        if win.ui.resizeCheck.isChecked():
+            image = win.resize_image(image)
+        if win.ui.compressCheck.isChecked():
+            image = win.compress_image(image, fext)
+
+        image.save(new_file_path, optimize=True, quality=win.quality)
+
+    def record_progress(self, progress):
+        win.ui.progressBar.setValue(progress)
 
 
 class Main(qtw.QWidget):
@@ -50,7 +110,6 @@ class Main(qtw.QWidget):
     # Overwrites empty sourceDir and destDir attributes with directories from the input fields
     # If any of the fields is empty - raise an exception that will be caught
     def get_sources(self):
-
         if self.ui.sourceEntry.text() == "" or self.ui.destinationEntry.text() == "":
             raise ValueError("Fields cannot be empty")
 
@@ -69,7 +128,6 @@ class Main(qtw.QWidget):
         return image
 
     def compress_image(self, image, fext):
-
         # PNG is a lossless format, hence requires separate algorithm
         if fext == ".png":
             image = image.convert(
@@ -81,52 +139,19 @@ class Main(qtw.QWidget):
         return image
 
     def proceed_all(self):
-        counter = 0
-        progress = 0
-        self.quality = self.ui.qualitySpinbox.value()
+        self.thread = QThread()
+        self.worker = Worker()
+        self.worker.moveToThread(self.thread)
 
-        # return keyword in the except body stops the function
-        try:
-            self.get_sources()
-        except ValueError:
-            self.show_fail_message()
-            return
-        # Saves image in a format, chosen in a spinbox, if the value in the spinbox != "Original"
-        # if it is, format remains the same
-        img_format = self.ui.formatBox.currentText().lower(
-        ) if self.ui.formatBox.currentText() != "Original" else None
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
 
-        extensions = (".png", ".jpg", ".jpeg", ".bmp", ".jfif")
-        files = [file for file in os.listdir(
-            self.source_dir) if file.endswith(extensions)]
+        self.worker.success.connect(self.show_done_message)
+        self.worker.error.connect(self.show_fail_message)
 
-        self.ui.progressBar.setMaximum(len(files))
-
-        for file in files:
-            self.process_file(file, img_format)
-
-            counter += 1
-            progress += 1
-            self.ui.progressBar.setValue(progress)
-
-        self.show_done_message(counter)
-        self.ui.progressBar.setValue(0)
-
-    def process_file(self, file, img_format):
-        fname, fext = os.path.splitext(file)
-
-        fext = '.' + img_format if img_format is not None else '.' + fext
-
-        new_file_path = self.dest_dir + fname + "_compressio" + fext
-
-        image = Image.open(self.source_dir + file)
-
-        if self.ui.resizeCheck.isChecked():
-            image = self.resize_image(image)
-        if self.ui.compressCheck.isChecked():
-            image = self.compress_image(image, fext)
-
-        image.save(new_file_path, optimize=True, quality=self.quality)
+        self.thread.start()
 
 
 if __name__ == '__main__':
