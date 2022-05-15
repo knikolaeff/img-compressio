@@ -8,6 +8,9 @@ from compressio_gui import Ui_Form
 
 
 class Worker(QObject):
+    '''
+    This class is responsible for batch imame processing itself.
+    '''
     finished = pyqtSignal()
     success = pyqtSignal(int)
     error = pyqtSignal()
@@ -54,13 +57,30 @@ class Worker(QObject):
         image = Image.open(win.source_dir + file)
 
         if win.ui.resizeCheck.isChecked():
-            image = win.resize_image(image)
+            image = self.resize_image(image)
         if win.ui.compressCheck.isChecked():
-            image = win.compress_image(image, fext)
+            image = self.compress_image(image, fext)
 
         image.save(new_file_path, optimize=True, quality=win.quality)
         self.progress.emit()
         image.close()
+
+    def resize_image(self, image):
+        width = win.ui.widthSpinbox.value()
+        height = win.ui.heightSpinbox.value()
+        image = image.resize((width, height))
+        return image
+
+    def compress_image(self, image, fext):
+        # PNG is a lossless format, hence requires separate algorithm
+        if fext == ".png":
+            image = image.convert(
+                'P',
+                palette=Image.ADAPTIVE,
+                colors=256
+            )
+
+        return image
 
 
 class Main(qtw.QWidget):
@@ -118,24 +138,11 @@ class Main(qtw.QWidget):
         else:
             self.dest_dir = r"" + self.ui.destinationEntry.text() + "/"
 
-    def resize_image(self, image):
-        width = self.ui.widthSpinbox.value()
-        height = self.ui.heightSpinbox.value()
-        image = image.resize((width, height))
-        return image
-
-    def compress_image(self, image, fext):
-        # PNG is a lossless format, hence requires separate algorithm
-        if fext == ".png":
-            image = image.convert(
-                'P',
-                palette=Image.ADAPTIVE,
-                colors=256
-            )
-
-        return image
-
     def proceed_all(self):
+        '''
+        Creates separate thread and instantiating Worker class in it.
+        Messaboxes, progressbar and counter are updating via Qt signals.
+        '''
         self.thread = QThread()
         self.worker = Worker()
         self.worker.moveToThread(self.thread)
