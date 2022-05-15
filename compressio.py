@@ -1,4 +1,5 @@
 import os
+from multiprocessing.pool import ThreadPool
 from PIL import Image
 from PyQt5 import QtWidgets as qtw
 from PyQt5.QtGui import QIcon
@@ -10,11 +11,9 @@ class Worker(QObject):
     finished = pyqtSignal()
     success = pyqtSignal(int)
     error = pyqtSignal()
+    progress = pyqtSignal()
 
     def run(self):
-        print("here2")
-        counter = 0
-        progress = 0
 
         # return keyword in the except body stops the function
         try:
@@ -27,7 +26,7 @@ class Worker(QObject):
 
         # Saves image in a format, chosen in a spinbox, if the value in the spinbox != "Original"
         # if it is, format remains the same
-        img_format = win.ui.formatBox.currentText().lower(
+        self.img_format = win.ui.formatBox.currentText().lower(
         ) if win.ui.formatBox.currentText() != "Original" else None
 
         extensions = (".png", ".jpg", ".jpeg", ".bmp", ".jfif")
@@ -36,20 +35,19 @@ class Worker(QObject):
 
         win.ui.progressBar.setMaximum(len(files))
 
-        for file in files:
-            self.process_file(file, img_format)
-            progress += 1
-            counter += 1
-            self.record_progress(progress)
+        p = ThreadPool()
+        log = p.map(self.process_file, files)
 
-        self.success.emit(counter)
+        p.close()
+        p.join()
+
+        self.success.emit(len(log))
         self.finished.emit()
-        win.ui.progressBar.setValue(0)
 
-    def process_file(self, file, img_format):
+    def process_file(self, file):
         fname, fext = os.path.splitext(file)
 
-        fext = '.' + img_format if img_format is not None else fext
+        fext = '.' + self.img_format if self.img_format is not None else fext
 
         new_file_path = win.dest_dir + fname + "_compressio" + fext
 
@@ -61,9 +59,8 @@ class Worker(QObject):
             image = win.compress_image(image, fext)
 
         image.save(new_file_path, optimize=True, quality=win.quality)
-
-    def record_progress(self, progress):
-        win.ui.progressBar.setValue(progress)
+        self.progress.emit()
+        image.close()
 
 
 class Main(qtw.QWidget):
@@ -113,7 +110,7 @@ class Main(qtw.QWidget):
         if self.ui.sourceEntry.text() == "" or self.ui.destinationEntry.text() == "":
             raise ValueError("Fields cannot be empty")
 
-    # 'r' in front of string means raw string. It will ignore escape sequences
+        # 'r' in front of string means raw string. It will ignore escape sequences
         self.source_dir = r"" + self.ui.sourceEntry.text() + "/"
 
         if self.ui.overwriteCheck.isChecked():
@@ -146,12 +143,21 @@ class Main(qtw.QWidget):
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.nullify_progress)
         self.thread.finished.connect(self.thread.deleteLater)
 
         self.worker.success.connect(self.show_done_message)
         self.worker.error.connect(self.show_fail_message)
+        self.worker.progress.connect(self.record_progress)
 
         self.thread.start()
+
+    def record_progress(self):
+        value = self.ui.progressBar.value()
+        self.ui.progressBar.setValue(value + 1)
+
+    def nullify_progress(self):
+        self.ui.progressBar.setValue(0)
 
 
 if __name__ == '__main__':
