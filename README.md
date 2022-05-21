@@ -11,6 +11,8 @@ directory of pictures, but now it has the following functionality:
 
 In order to use the program, dependencies must be satisfied first:
 
+Python 3.9 is needed, 3.10 update is in progress.
+
 ```shell
 pip install -r requirements.txt
 ```
