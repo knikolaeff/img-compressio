@@ -91,7 +91,7 @@ class Main(qtw.QWidget):
         self.ui.setupUi(self)
 
         self.setWindowTitle("Compressio")
-        self.setWindowIcon(QIcon(r"src/icon.ico"))
+        self.setWindowIcon(QIcon('icon.ico'))
 
         # These attributes are made to avoid passing directories from method to method
         self.source_dir = None
@@ -165,7 +165,6 @@ class Main(qtw.QWidget):
 
     def nullify_progress(self):
         self.ui.progressBar.setValue(0)
-
 
 if __name__ == '__main__':
     app = qtw.QApplication([])
