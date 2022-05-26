@@ -3,3 +3,9 @@
 __pycache__/
 
 .git/
+
+build/
+
+dist/
+
+compressio.spec
