@@ -39,12 +39,12 @@ class Worker(QObject):
         win.ui.progressBar.setMaximum(len(files))
 
         p = ThreadPool()
-        log = p.map(self.process_file, files)
+        pool_map = p.map(self.process_file, files)
 
         p.close()
         p.join()
 
-        self.success.emit(len(log))
+        self.success.emit(len(pool_map))
         self.finished.emit()
 
     def process_file(self, file):
@@ -91,7 +91,7 @@ class Main(qtw.QWidget):
         self.ui.setupUi(self)
 
         self.setWindowTitle("Compressio")
-        self.setWindowIcon(QIcon('icon.ico'))
+        self.setWindowIcon(QIcon(r"src/icon.ico"))
 
         # These attributes are made to avoid passing directories from method to method
         self.source_dir = None
@@ -165,6 +165,7 @@ class Main(qtw.QWidget):
 
     def nullify_progress(self):
         self.ui.progressBar.setValue(0)
+
 
 if __name__ == '__main__':
     app = qtw.QApplication([])
