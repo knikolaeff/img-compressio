@@ -9,17 +9,15 @@ directory of pictures, but now it has the following functionality:
 
 ## Installation
 
-In order to use the program, dependencies must be satisfied first:
-
-Python 3.9 is needed, 3.10 update is in progress.
 
 ```shell
+# Cloning the repo
+git clone https://github.com/knikolaeff/compressio.git && cd compressio
+
+# Installing dependencies 
 pip install -r requirements.txt
-```
 
-Compressio can be run as any other Python script from this point:
-
-```shell
+# Running the script
 python compressio.py
 ```
 
