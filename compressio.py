@@ -9,20 +9,24 @@ from compressio_gui import Ui_Form
 
 class Worker(QObject):
     '''
-    This class is responsible for batch imame processing itself.
+    This class is responsible for batch image processing itself.
     '''
     finished = pyqtSignal()
     success = pyqtSignal(int)
-    error = pyqtSignal()
+    empty_entries_error = pyqtSignal()
+    incorrect_path_error = pyqtSignal()
     progress = pyqtSignal()
 
     def run(self):
 
-        # return keyword in the except body stops the function
+        # 'return' keyword in the except body stops the function
         try:
             win.get_sources()
         except ValueError:
-            self.error.emit()
+            self.empty_entries_error.emit()
+            return
+        except FileNotFoundError:
+            self.incorrect_path_error.emit()
             return
 
         win.quality = win.ui.qualitySpinbox.value()
@@ -91,7 +95,7 @@ class Main(qtw.QWidget):
         self.ui.setupUi(self)
 
         self.setWindowTitle("Compressio")
-        self.setWindowIcon(QIcon(r"src/icon.ico"))
+        self.setWindowIcon(QIcon("icon.ico"))
 
         # These attributes are made to avoid passing directories from method to method
         self.source_dir = None
@@ -107,8 +111,11 @@ class Main(qtw.QWidget):
         qtw.QMessageBox.information(
             self, "Success", f"Done! Successfully edited images: {counter}")
 
-    def show_fail_message(self):
-        qtw.QMessageBox.information(self, "Fail", "Fields cannot be empty!")
+    def show_empty_fields_error(self):
+        qtw.QMessageBox.warning(self, "Fail", "Fields cannot be empty!")
+
+    def show_incorrect_path_error(self):
+        qtw.QMessageBox.warning(self, "Fail", "One or both paths are incorrect! \nSource: %s \nDestination: %s" % (self.source_dir, self.dest_dir))    
 
     def open_source_directory(self):
         directory = qtw.QFileDialog.getExistingDirectory(
@@ -127,16 +134,21 @@ class Main(qtw.QWidget):
     # Overwrites empty sourceDir and destDir attributes with directories from the input fields
     # If any of the fields is empty - raise an exception that will be caught
     def get_sources(self):
-        if self.ui.sourceEntry.text() == "" or self.ui.destinationEntry.text() == "":
-            raise ValueError("Fields cannot be empty")
 
         # 'r' in front of string means raw string. It will ignore escape sequences
         self.source_dir = r"" + self.ui.sourceEntry.text() + "/"
 
+        # If overwriting checkbox is ticked, dest_dir is same as source_dir
         if self.ui.overwriteCheck.isChecked():
             self.dest_dir = self.source_dir
         else:
             self.dest_dir = r"" + self.ui.destinationEntry.text() + "/"
+
+        if self.source_dir == '/' or self.dest_dir == '/':
+            raise ValueError()
+
+        if os.path.isdir(self.source_dir) != True or os.path.isdir(self.dest_dir) != True:
+            raise FileNotFoundError()
 
     def proceed_all(self):
         '''
@@ -154,7 +166,8 @@ class Main(qtw.QWidget):
         self.thread.finished.connect(self.thread.deleteLater)
 
         self.worker.success.connect(self.show_done_message)
-        self.worker.error.connect(self.show_fail_message)
+        self.worker.empty_entries_error.connect(self.show_empty_fields_error)
+        self.worker.incorrect_path_error.connect(self.show_incorrect_path_error)
         self.worker.progress.connect(self.record_progress)
 
         self.thread.start()
