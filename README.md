@@ -21,3 +21,8 @@ pip install -r requirements.txt
 python compressio.py
 ```
 
+If you are on Windows or don't want to use command line - there are two pre-built executables in the "[Releases](https://github.com/knikolaeff/compressio/releases)" tab.
+
+Although it worth mentioning that I used PyInstaller to built these, what leads to pretty big size of the executables. 
+
+Any contribution, especially reducing the executables size is welcome!
