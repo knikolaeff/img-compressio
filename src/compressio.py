@@ -157,8 +157,6 @@ class Main(qtw.QWidget):
         '''
         self.worker = Worker()
 
-        self.worker.started.connect(self.worker.run)
-        self.worker.finished.connect(self.worker.deleteLater)
         self.worker.finished.connect(self.nullify_progress)
 
         self.worker.success.connect(self.show_done_message)
