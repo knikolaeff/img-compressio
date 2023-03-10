@@ -3,11 +3,11 @@ from multiprocessing.pool import ThreadPool
 from PIL import Image
 from PyQt5 import QtWidgets as qtw
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSignal, QThread, QObject
+from PyQt5.QtCore import pyqtSignal, QThread
 from compressio_gui import Ui_Form
 
 
-class Worker(QObject):
+class Worker(QThread):
     '''
     This class is responsible for batch image processing itself.
     '''
@@ -155,22 +155,18 @@ class Main(qtw.QWidget):
         Creates separate thread and instantiating Worker class in it.
         Messaboxes, progressbar and counter are updating via Qt signals.
         '''
-        self.thread = QThread()
         self.worker = Worker()
-        self.worker.moveToThread(self.thread)
 
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread.quit)
+        self.worker.started.connect(self.worker.run)
         self.worker.finished.connect(self.worker.deleteLater)
         self.worker.finished.connect(self.nullify_progress)
-        self.thread.finished.connect(self.thread.deleteLater)
 
         self.worker.success.connect(self.show_done_message)
         self.worker.empty_entries_error.connect(self.show_empty_fields_error)
         self.worker.incorrect_path_error.connect(self.show_incorrect_path_error)
         self.worker.progress.connect(self.record_progress)
 
-        self.thread.start()
+        self.worker.start()
 
     def record_progress(self):
         value = self.ui.progressBar.value()
