@@ -77,7 +77,7 @@ class Worker(QThread):
 
     def compress_image(self, image, fext):
         # PNG is a lossless format, hence requires separate algorithm
-        if fext == ".png":
+        if fext is ".png":
             image = image.convert(
                 'P',
                 palette=Image.ADAPTIVE,
@@ -144,7 +144,7 @@ class Main(qtw.QWidget):
         else:
             self.dest_dir = r"" + self.ui.destinationEntry.text() + "/"
 
-        if self.source_dir == '/' or self.dest_dir == '/':
+        if self.source_dir is '/' or self.dest_dir is '/':
             raise ValueError()
 
         if os.path.isdir(self.source_dir) != True or os.path.isdir(self.dest_dir) != True:
