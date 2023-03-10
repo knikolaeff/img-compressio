@@ -77,7 +77,7 @@ class Worker(QThread):
 
     def compress_image(self, image, fext):
         # PNG is a lossless format, hence requires separate algorithm
-        if fext is ".png":
+        if fext == ".png":
             image = image.convert(
                 'P',
                 palette=Image.ADAPTIVE,
@@ -107,6 +107,8 @@ class Main(qtw.QWidget):
 
         self.ui.proceedAllBtn.clicked.connect(self.proceed_all)
 
+        self.worker = Worker()
+
     def show_done_message(self, counter):
         qtw.QMessageBox.information(
             self, "Success", f"Done! Successfully edited images: {counter}")
@@ -115,7 +117,7 @@ class Main(qtw.QWidget):
         qtw.QMessageBox.warning(self, "Fail", "Fields cannot be empty!")
 
     def show_incorrect_path_error(self):
-        qtw.QMessageBox.warning(self, "Fail", f"One or both paths are incorrect! \nSource: {self.source_dir} \nDestination: self.dest_dir")    
+        qtw.QMessageBox.warning(self, "Fail", f"One or both paths are incorrect! \nSource: {self.source_dir} \nDestination: self.dest_dir")
 
     def open_source_directory(self):
         directory = qtw.QFileDialog.getExistingDirectory(
@@ -144,10 +146,10 @@ class Main(qtw.QWidget):
         else:
             self.dest_dir = r"" + self.ui.destinationEntry.text() + "/"
 
-        if self.source_dir is '/' or self.dest_dir is '/':
+        if self.source_dir == '/' or self.dest_dir == '/':
             raise ValueError()
 
-        if os.path.isdir(self.source_dir) != True or os.path.isdir(self.dest_dir) != True:
+        if os.path.isdir(self.source_dir) is not True or os.path.isdir(self.dest_dir) is not True:
             raise FileNotFoundError()
 
     def proceed_all(self):
@@ -155,7 +157,6 @@ class Main(qtw.QWidget):
         Creates separate thread and instantiating Worker class in it.
         Messaboxes, progressbar and counter are updating via Qt signals.
         '''
-        self.worker = Worker()
 
         self.worker.finished.connect(self.nullify_progress)
 
