@@ -115,7 +115,7 @@ class Main(qtw.QWidget):
         qtw.QMessageBox.warning(self, "Fail", "Fields cannot be empty!")
 
     def show_incorrect_path_error(self):
-        qtw.QMessageBox.warning(self, "Fail", "One or both paths are incorrect! \nSource: %s \nDestination: %s" % (self.source_dir, self.dest_dir))    
+        qtw.QMessageBox.warning(self, "Fail", f"One or both paths are incorrect! \nSource: {self.source_dir} \nDestination: self.dest_dir")    
 
     def open_source_directory(self):
         directory = qtw.QFileDialog.getExistingDirectory(
