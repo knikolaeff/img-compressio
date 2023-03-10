@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "compressio"
+name = "img-compressio"
 version = "0.1.1"
 description = "Compressio is a Python program used to compress images in bulk"
 authors = ["Kirill <kirillnikolaefff@gmail.com>"]

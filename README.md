@@ -9,20 +9,38 @@ directory of pictures, but now it has the following functionality:
 
 ## Installation
 
+#### Using Poetry (Linux, macOS, Windows **(WSL)**)
 
 ```shell
-# Cloning the repo
-git clone https://github.com/knikolaeff/compressio.git && cd compressio
+# Installing Poetry 
+curl -sSL https://install.python-poetry.org | python3 -
 
-# Installing dependencies 
-pip install -r requirements.txt
+# Cloning the repo
+git clone https://github.com/knikolaeff/img-compressio.git
+
+cd img-compressio
+
+# Installing dependencies
+poetry install
+
+# Running the script
+python3 compressio.py
+```
+
+#### Using Poetry (Windows **(Powershell)**)
+
+```shell
+# Installing Poetry 
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+
+# Cloning the repo
+git clone https://github.com/knikolaeff/img-compressio.git
+
+cd img-compressio
+
+# Installing dependencies
+poetry install
 
 # Running the script
 python compressio.py
 ```
-
-If you are on Windows or don't want to use command line - there are two pre-built executables in the "[Releases](https://github.com/knikolaeff/compressio/releases)" tab.
-
-Although it worth mentioning that I used PyInstaller to built these, what leads to pretty big size of the executables. 
-
-Any contribution, especially reducing the executables size is welcome!
