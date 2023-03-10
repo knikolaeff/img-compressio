@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "compressio"
+version = "0.1.1"
+description = "Compressio is a Python program used to compress images in bulk"
+authors = ["Kirill <kirillnikolaefff@gmail.com>"]
+license = "MIT licence"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+Pillow = "^9.4.0"
+PyQt5 = "^5.15.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
