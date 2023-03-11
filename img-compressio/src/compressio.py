@@ -54,7 +54,7 @@ class Worker(QThread):
     def process_file(self, file):
         fname, fext = os.path.splitext(file)
 
-        fext = '.' + self.img_format if self.img_format is not None else fext
+        fext = f'.{self.img_format}' if self.img_format is not None else fext
 
         new_file_path = win.dest_dir + fname + "_compressio" + fext
 
@@ -121,17 +121,15 @@ class Main(qtw.QWidget):
             self, "Fail", f"One or both paths are incorrect! \nSource: {self.source_dir} \nDestination: self.dest_dir")
 
     def open_source_directory(self):
-        directory = qtw.QFileDialog.getExistingDirectory(
-            self, "Choose Directory", "", qtw.QFileDialog.DontUseNativeDialog)
-
-        if directory:
+        if directory := qtw.QFileDialog.getExistingDirectory(
+            self, "Choose Directory", "", qtw.QFileDialog.DontUseNativeDialog
+        ):
             self.ui.sourceEntry.setText(directory)
 
     def open_dest_directory(self):
-        directory = qtw.QFileDialog.getExistingDirectory(
-            self, "Choose Directory", "", qtw.QFileDialog.DontUseNativeDialog)
-
-        if directory:
+        if directory := qtw.QFileDialog.getExistingDirectory(
+            self, "Choose Directory", "", qtw.QFileDialog.DontUseNativeDialog
+        ):
             self.ui.destinationEntry.setText(directory)
 
     # Overwrites empty sourceDir and destDir attributes with directories from the input fields
@@ -139,13 +137,13 @@ class Main(qtw.QWidget):
     def get_sources(self):
 
         # 'r' in front of string means raw string. It will ignore escape sequences
-        self.source_dir = r"" + self.ui.sourceEntry.text() + "/"
+        self.source_dir = f"{self.ui.sourceEntry.text()}/"
 
         # If overwriting checkbox is ticked, dest_dir is same as source_dir
         if self.ui.overwriteCheck.isChecked():
             self.dest_dir = self.source_dir
         else:
-            self.dest_dir = r"" + self.ui.destinationEntry.text() + "/"
+            self.dest_dir = f"{self.ui.destinationEntry.text()}/"
 
         if self.source_dir == '/' or self.dest_dir == '/':
             raise ValueError()
