@@ -37,7 +37,7 @@ class Worker(QThread):
         ) if win.ui.formatBox.currentText() != "Original" else None
 
         extensions = (".png", ".jpg", ".jpeg", ".bmp", ".jfif")
-        files = [file for file in os.scandir(
+        files = [file for file in os.listdir(
             win.source_dir) if file.endswith(extensions)]
 
         win.ui.progressBar.setMaximum(len(files))
