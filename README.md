@@ -1,5 +1,7 @@
 # Compressio
 
+My final project in college
+
 Compressio is a python application that allows to edit images in bulk. Originally, it\'s purpose was to compress a
 directory of pictures, but now it has the following functionality:
 
