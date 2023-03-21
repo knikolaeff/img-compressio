@@ -5,6 +5,9 @@ description = "Compressio is a Python program used to compress images in bulk"
 authors = ["Kirill <kirillnikolaefff@gmail.com>"]
 license = "MIT licence"
 readme = "README.md"
+packages = [
+    { include = "img-compressio" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
